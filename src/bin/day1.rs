@@ -80,4 +80,16 @@ mod tests {
             7pqrstsixteen"#;
         assert_eq!(part_two_quick_and_dirty(input), 281);
     }
+
+    #[test]
+    fn real_part_1() {
+        let input = std::fs::read_to_string("inputs/day1").unwrap();
+        assert_eq!(part_one(&input), 54159);
+    }
+
+    #[test]
+    fn real_part_2() {
+        let input = std::fs::read_to_string("inputs/day1").unwrap();
+        assert_eq!(part_two_quick_and_dirty(&input), 53866);
+    }
 }
