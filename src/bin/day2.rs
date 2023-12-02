@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 fn main() {
     let file_content = std::fs::read_to_string("inputs/day2").unwrap();
     println!("Part 1: Sum of valid Game IDs: {}", part_one(&file_content));
@@ -19,9 +17,6 @@ fn part_one(input: &str) -> usize {
             // Draw example:
             // "3 green, 4 blue, 1 red"
             // "1 blue, 2 green"
-            let mut red = 0;
-            let mut blue = 0;
-            let mut green = 0;
 
             for cube_draw in draw.split(',') {
                 // example: " 4 blue"
@@ -29,18 +24,17 @@ fn part_one(input: &str) -> usize {
                 let number = splitted.next().unwrap().parse::<u64>().unwrap();
                 let color = splitted.next().unwrap();
 
-                match color {
-                    "red" => red = number,
-                    "blue" => blue = number,
-                    "green" => green = number,
-                    _ => (), /* Do not handle invalid input */
-                }
-            }
+                let valid_draw = match color {
+                    "red" if number > 12 => false,
+                    "blue" if number > 14 => false,
+                    "green" if number > 13 => false,
+                    _ => true, /* draw is legit OR we are dealing with an invalid input */
+                };
 
-            if red > 12 || green > 13 || blue > 14 {
-                is_game_valid = false;
-                // No need to check the other draws, the game is already invalid
-                break;
+                if !valid_draw {
+                    is_game_valid = false;
+                    break; // do not bother to check the other draws.
+                }
             }
         }
 
@@ -65,10 +59,6 @@ fn part_two(input: &str) -> usize {
             // Draw example:
             // "3 green, 4 blue, 1 red"
             // "1 blue, 2 green"
-            let mut red = 0;
-            let mut blue = 0;
-            let mut green = 0;
-
             for cube_draw in draw.split(',') {
                 // example: " 4 blue"
                 let mut splitted = cube_draw.trim().split_whitespace();
@@ -76,16 +66,12 @@ fn part_two(input: &str) -> usize {
                 let color = splitted.next().unwrap();
 
                 match color {
-                    "red" => red = number,
-                    "blue" => blue = number,
-                    "green" => green = number,
-                    _ => (), /* Do not handle invalid input */
+                    "red" if number > min_red => min_red = number,
+                    "blue" if number > min_blue => min_blue = number,
+                    "green" if number > min_green => min_green = number,
+                    _ => (), /* beware that this also globs invalid input  */
                 }
             }
-
-            min_red = max(min_red, red);
-            min_green = max(min_green, green);
-            min_blue = max(min_blue, blue);
         }
 
         game_powers.push(min_red * min_blue * min_green);
