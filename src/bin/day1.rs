@@ -18,7 +18,7 @@ fn part_one(input: &str) -> u64 {
         .map(|line| {
             let first_digit = line.chars().find(|c| c.is_ascii_digit()).unwrap();
             let last_digit = line.chars().rfind(|c| c.is_ascii_digit()).unwrap();
-            let assembled = String::from_iter([first_digit, last_digit]);
+            let assembled = format!("{first_digit}{last_digit}");
             assembled.parse::<u64>().unwrap()
         })
         .sum()
