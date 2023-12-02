@@ -17,7 +17,7 @@ fn part_one(input: &str) -> u64 {
         .lines()
         .map(|line| {
             let first_digit = line.chars().find(|c| c.is_ascii_digit()).unwrap();
-            let last_digit = line.chars().rev().find(|c| c.is_ascii_digit()).unwrap();
+            let last_digit = line.chars().rfind(|c| c.is_ascii_digit()).unwrap();
             let assembled = String::from_iter([first_digit, last_digit]);
             assembled.parse::<u64>().unwrap()
         })
@@ -44,7 +44,7 @@ fn part_two_quick_and_dirty(input: &str) -> u64 {
         .lines()
         .map(|line| {
             let first_digit = line.chars().find(|c| c.is_ascii_digit()).unwrap();
-            let last_digit = line.chars().rev().find(|c| c.is_ascii_digit()).unwrap();
+            let last_digit = line.chars().rfind(|c| c.is_ascii_digit()).unwrap();
             let assembled = String::from_iter([first_digit, last_digit]);
             assembled.parse::<u64>().unwrap()
         })
