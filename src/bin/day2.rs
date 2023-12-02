@@ -80,6 +80,34 @@ fn part_two(input: &str) -> usize {
     game_powers.iter().sum()
 }
 
+fn part_two_functional(input: &str) -> usize {
+    input
+        .lines()
+        .map(|line| {
+            // Separate the game Id from the actual game data
+            // "Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue"
+            let game_data = line.rsplit(':').next().unwrap();
+            let (r, g, b) = game_data.split(';').fold((0, 0, 0), |acc, draw| {
+                // example draw: "3 green, 4 blue, 1 red"
+                draw.split(',').fold(acc, |inner_acc, cube_draw| {
+                    // example cube draw: " 4 blue"
+                    let mut splitted = cube_draw.trim().split_whitespace();
+                    let number = splitted.next().unwrap().parse::<usize>().unwrap();
+                    let color = splitted.next().unwrap();
+
+                    match color {
+                        "red" if number > inner_acc.0 => (number, inner_acc.1, inner_acc.2),
+                        "green" if number > inner_acc.1 => (inner_acc.0, number, inner_acc.2),
+                        "blue" if number > inner_acc.2 => (inner_acc.0, inner_acc.1, number),
+                        _ => inner_acc, /* beware that this also globs invalid input  */
+                    }
+                })
+            });
+            r * g * b
+        })
+        .sum()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,6 +154,7 @@ mod tests {
         Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"#;
 
         assert_eq!(part_two(input), 2286);
+        assert_eq!(part_two_functional(input), 2286)
     }
 
     #[test]
@@ -138,5 +167,6 @@ mod tests {
     fn real_part_2() {
         let input = std::fs::read_to_string("inputs/day2").unwrap();
         assert_eq!(part_two(&input), 56580);
+        assert_eq!(part_two_functional(&input), 56580);
     }
 }
