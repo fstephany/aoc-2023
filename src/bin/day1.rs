@@ -1,7 +1,5 @@
-use std::fs;
-
 fn main() {
-    let file_content = fs::read_to_string("inputs/day1").unwrap();
+    let file_content = std::fs::read_to_string("inputs/day1").unwrap();
 
     println!(
         "Part 1: Sum of all the calibration values: {}",
@@ -55,7 +53,19 @@ fn part_two_quick_and_dirty(input: &str) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::part_two_quick_and_dirty;
+    use super::*;
+
+    #[test]
+    fn example_part_1() {
+        // In this example, the calibration values are 29, 83, 13, 24, 42, 14, and 76.
+        // Adding these together produces 281.
+        let input = r#"1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet"#;
+
+        assert_eq!(part_one(input), 142);
+    }
 
     #[test]
     fn example_part_2() {
