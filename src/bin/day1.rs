@@ -21,7 +21,7 @@ fn part_one(input: &str) -> u64 {
             let assembled = String::from_iter([first_digit, last_digit]);
             assembled.parse::<u64>().unwrap()
         })
-        .sum::<u64>()
+        .sum()
 }
 
 /// In which the inner computer science guy in me dies.
@@ -48,7 +48,7 @@ fn part_two_quick_and_dirty(input: &str) -> u64 {
             let assembled = String::from_iter([first_digit, last_digit]);
             assembled.parse::<u64>().unwrap()
         })
-        .sum::<u64>()
+        .sum()
 }
 
 #[cfg(test)]
