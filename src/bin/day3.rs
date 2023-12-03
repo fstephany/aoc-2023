@@ -6,6 +6,18 @@ fn main() {
     println!("Part 2: sum of gear ratios: {}", part_two(&file_content));
 }
 
+/// The general idea is to work on a continuous stream of chars without trying
+/// to be too smart.
+///
+/// 1. Remove all the whitespace (i.e. newlines) from the input
+/// 2. Extract the position of all the symbols
+/// 3. Go through the data one char at a time.
+///     - a. Accumulate the consecutive digits that form a number
+///     - b. Check for each digit the top-left, top, top-right, left, right,
+///       bottom-left, bottom, bottom-right position to see if there is a symbol
+///       around.
+///     - c. Once we we reach the end of a number, check if it is a valid part
+///       number (ie., it has an adjacent symbol).
 fn part_one(input: &str) -> u64 {
     let width = input.find(char::is_whitespace).unwrap(); // all lines have the same width
     let input: String = input.chars().filter(|c| !c.is_ascii_whitespace()).collect();
@@ -34,10 +46,13 @@ fn part_one(input: &str) -> u64 {
             has_adjacent_symbol = false;
         };
 
-        let check_top = i >= width;
-        let check_bottom = i < input.len() - width;
-        let check_left = (i % width) != 0; //
-        let check_right = (i % width) != width - 1;
+        // If the current char is on a border of the board (first row, last row,
+        // first col, last col), there's no point trying to look in certain
+        // directions.
+        let check_top = i >= width; // not first row
+        let check_bottom = i < input.len() - width; // not last row
+        let check_left = (i % width) != 0; // not first col
+        let check_right = (i % width) != width - 1; // not last col
 
         // If we are the beginning of a line, we process the remaining of the
         // previous line. Because we might have a number ending a line.
@@ -75,6 +90,12 @@ fn part_one(input: &str) -> u64 {
     correct_parts.iter().sum()
 }
 
+/// It almost follows the same principle as `part_one` but this time we are only
+/// interested in '*' symbols.
+///
+/// Instead of just storing the position of a symbol, we also store the numbers
+/// that are adjacent to it.
+///
 fn part_two(input: &str) -> u64 {
     let width = input.find(char::is_whitespace).unwrap();
     let input: String = input.chars().filter(|c| !c.is_ascii_whitespace()).collect();
