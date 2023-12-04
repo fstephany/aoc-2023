@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 fn main() {
     let file_content = std::fs::read_to_string("inputs/day4").unwrap();
@@ -16,11 +16,11 @@ fn part_one(input: &str) -> u64 {
             let winning_numbers_hash = left_numbers
                 .split_ascii_whitespace()
                 .map(|n| n.parse::<u32>().unwrap())
-                .collect::<HashSet<_>>();
+                .collect::<BTreeSet<_>>();
             let drawed_number = right_numbers
                 .split_ascii_whitespace()
                 .map(|n| n.parse::<u32>().unwrap())
-                .collect::<HashSet<_>>();
+                .collect::<BTreeSet<_>>();
 
             let matching_count = winning_numbers_hash.intersection(&drawed_number).count();
 
@@ -43,12 +43,12 @@ fn part_two(input: &str) -> u64 {
         let winning_numbers_hash = left_numbers
             .split_ascii_whitespace()
             .map(|n| n.parse::<u32>().unwrap())
-            .collect::<HashSet<_>>();
+            .collect::<BTreeSet<_>>();
 
         let drawed_number = right_numbers
             .split_ascii_whitespace()
             .map(|n| n.parse::<u32>().unwrap())
-            .collect::<HashSet<_>>();
+            .collect::<BTreeSet<_>>();
         let matching_count = winning_numbers_hash.intersection(&drawed_number).count();
         let copies_of_current_card = number_of_draws_per_card.get(i).unwrap();
 
