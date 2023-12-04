@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 fn main() {
     let file_content = std::fs::read_to_string("inputs/day4").unwrap();
     println!("Part 1: {}", part_one(&file_content));
@@ -10,56 +12,54 @@ fn part_one(input: &str) -> u64 {
         .map(|line| {
             let (_card_id, data) = line.split_once(": ").unwrap();
             let (left_numbers, right_numbers) = data.split_once("|").unwrap();
-            let winning_numbers: Vec<_> = left_numbers
-                .split_ascii_whitespace()
-                .map(|n| n.parse::<u64>().unwrap())
-                .collect();
 
-            let points = right_numbers
+            let winning_numbers_hash = left_numbers
                 .split_ascii_whitespace()
-                .map(|n| n.parse::<u64>().unwrap())
-                .fold(0, |acc, current_number| {
-                    if winning_numbers.contains(&current_number) {
-                        if acc == 0 {
-                            1
-                        } else {
-                            acc * 2
-                        }
-                    } else {
-                        acc
-                    }
-                });
-            points
+                .map(|n| n.parse::<u32>().unwrap())
+                .collect::<HashSet<_>>();
+            let drawed_number = right_numbers
+                .split_ascii_whitespace()
+                .map(|n| n.parse::<u32>().unwrap())
+                .collect::<HashSet<_>>();
+
+            let matching_count = winning_numbers_hash.intersection(&drawed_number).count();
+
+            if matching_count > 0 {
+                2u64.pow((matching_count - 1) as u32)
+            } else {
+                0
+            }
         })
         .sum()
 }
 
+/// The idea is to update the `number_of_draws_per_card` after we draw a card.
 fn part_two(input: &str) -> u64 {
-    let mut number_of_draw_per_card = vec![1; input.lines().count()];
+    let mut number_of_draws_per_card = vec![1; input.lines().count()];
 
     for (i, line) in input.lines().enumerate() {
         let (_card_name, data) = line.split_once(": ").unwrap();
         let (left_numbers, right_numbers) = data.split_once("|").unwrap();
-        let winning_numbers: Vec<_> = left_numbers
+        let winning_numbers_hash = left_numbers
             .split_ascii_whitespace()
-            .map(|n| n.parse::<u64>().unwrap())
-            .collect();
+            .map(|n| n.parse::<u32>().unwrap())
+            .collect::<HashSet<_>>();
 
-        let points = right_numbers
+        let drawed_number = right_numbers
             .split_ascii_whitespace()
-            .map(|n| n.parse::<u64>().unwrap())
-            .filter(|n| winning_numbers.contains(&n))
-            .count();
+            .map(|n| n.parse::<u32>().unwrap())
+            .collect::<HashSet<_>>();
+        let matching_count = winning_numbers_hash.intersection(&drawed_number).count();
 
-        for _ in 0..*number_of_draw_per_card.get(i).unwrap() {
-            for j in 0..points {
-                let to_draw = number_of_draw_per_card.get_mut(i + j + 1).unwrap();
+        for _ in 0..*number_of_draws_per_card.get(i).unwrap() {
+            for j in 0..matching_count {
+                let to_draw = number_of_draws_per_card.get_mut(i + j + 1).unwrap();
                 *to_draw = *to_draw + 1;
             }
         }
     }
 
-    number_of_draw_per_card.iter().sum()
+    number_of_draws_per_card.iter().sum()
 }
 
 #[cfg(test)]
