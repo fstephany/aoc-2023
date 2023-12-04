@@ -50,11 +50,13 @@ fn part_two(input: &str) -> u64 {
             .map(|n| n.parse::<u32>().unwrap())
             .collect::<HashSet<_>>();
         let matching_count = winning_numbers_hash.intersection(&drawed_number).count();
+        let copies_of_current_card = number_of_draws_per_card.get(i).unwrap();
 
-        for _ in 0..*number_of_draws_per_card.get(i).unwrap() {
+        for _ in 0..*copies_of_current_card {
+            // Create copies of following card based on the number of wins
             for j in 0..matching_count {
-                let to_draw = number_of_draws_per_card.get_mut(i + j + 1).unwrap();
-                *to_draw = *to_draw + 1;
+                let card_to_copy = i + j + 1;
+                number_of_draws_per_card[card_to_copy] = number_of_draws_per_card[card_to_copy] + 1
             }
         }
     }
