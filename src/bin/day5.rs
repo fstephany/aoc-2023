@@ -1,9 +1,12 @@
-use std::{collections::BTreeSet, ops::Range};
+use std::{
+    cmp::{max, min},
+    ops::Range,
+};
 
 fn main() {
     let file_content = std::fs::read_to_string("inputs/day5").unwrap();
     println!("Part 1: {}", part_one(&file_content));
-    // println!("Part 2: {}", part_two(&file_content));
+    println!("Part 2: {}", part_two(&file_content));
 }
 
 #[derive(Default, Debug)]
@@ -16,6 +19,25 @@ impl Almanach {
         self.categories
             .iter()
             .fold(start, |acc, category| category.traverse(acc))
+    }
+
+    pub fn traverse_with_range(&self, seed: Range<u64>) -> Vec<Range<u64>> {
+        // for category in self.categories.iter() {
+        //     let mut next = Vec::new();
+        //     for range in current {
+        //         next.append(&mut category.traverse_with_range(range));
+        //     }
+        //     current = next;
+        // }
+
+        self.categories.iter().fold(vec![seed], |acc, category| {
+            let mut all_ranges_mapped = Vec::new();
+            for range_to_map in acc {
+                all_ranges_mapped.append(&mut category.traverse_with_range(range_to_map));
+            }
+
+            all_ranges_mapped
+        })
     }
 }
 
@@ -34,6 +56,26 @@ impl CategoryMapping {
         }
         // No mapping so just return the input
         return input;
+    }
+
+    pub fn traverse_with_range(&self, range: Range<u64>) -> Vec<Range<u64>> {
+        // Go through all the mappings to to try to cover the range we received.
+        let mapped_ranges: Vec<Range<u64>> = self
+            .mappings
+            .iter()
+            .filter_map(|mapping| mapping.map_full_range(&range))
+            .collect();
+
+        if mapped_ranges.is_empty() {
+            println!(
+                "Nothing overlaps {range:?} in {}. Returns it as-is.",
+                self.name
+            );
+        } else {
+            println!("Mapping: {range:?} to: {mapped_ranges:?}");
+        }
+
+        mapped_ranges
     }
 }
 
@@ -54,10 +96,31 @@ impl Mapping {
     }
 
     pub fn map(&self, input: u64) -> Option<u64> {
-        (input >= self.lower_bound && input <= self.upper_bound).then(|| {
+        (input >= self.lower_bound && input < self.upper_bound).then(|| {
             let offset = input - self.lower_bound;
             self.destination_lower_bound + offset
         })
+    }
+
+    pub fn map_full_range(&self, input: &Range<u64>) -> Option<Range<u64>> {
+        // Return the map of the intersection between the requested range and
+        // the range we have.
+        // FIXME: Handle the remainder. Because we miss a good chunk of input!
+
+        let potential_intersect = Range {
+            start: max(self.lower_bound, input.start),
+            end: min(self.upper_bound, input.end),
+        };
+
+        if potential_intersect.is_empty() {
+            None
+        } else {
+            // Do the actual mapping
+            Some(Range {
+                start: potential_intersect.start - self.lower_bound + self.destination_lower_bound,
+                end: potential_intersect.end - self.lower_bound + self.destination_lower_bound,
+            })
+        }
     }
 }
 
@@ -134,13 +197,6 @@ fn part_two(input: &str) -> u64 {
         .map(|n| n.parse::<u64>().unwrap())
         .collect();
 
-    let seed_ranges: Vec<Range<u64>> = seeds_data
-        .chunks(2)
-        .map(|chunk| (chunk[0]..chunk[0] + chunk[1]))
-        .collect();
-
-    dbg!(&seed_ranges);
-
     let mut almanach = Almanach::default();
     let mut current_category = CategoryMapping::default();
 
@@ -173,14 +229,23 @@ fn part_two(input: &str) -> u64 {
     // Handle last line. Ugly but hey.
     almanach.categories.push(current_category);
 
-    // Do the seed range overlap? Put them in a set to be sure.
-
-    let all_ranges: BTreeSet<u64> = seed_ranges
-        .into_iter()
-        .flat_map(|range| range.collect::<Vec<u64>>())
+    let all_seed_ranges: Vec<Range<u64>> = seeds_data
+        .chunks(2)
+        .map(|chunk| (chunk[0]..chunk[0] + chunk[1]))
         .collect();
 
-    dbg!(all_ranges.len());
+    dbg!(&all_seed_ranges);
+
+    all_seed_ranges
+        .into_iter()
+        .flat_map(|seed_range| almanach.traverse_with_range(seed_range).into_iter())
+        .map(|ranges| {
+            dbg!(&ranges);
+            ranges
+        })
+        .min_by_key(|r| r.start)
+        .unwrap()
+        .start
 
     // let end_results: Vec<u64> = seeds
     //     .into_iter()
@@ -193,8 +258,6 @@ fn part_two(input: &str) -> u64 {
     // dbg!(&end_results);
 
     // end_results.into_iter().min().unwrap()
-
-    42
 }
 
 #[cfg(test)]
@@ -283,5 +346,48 @@ mod tests {
         60 56 37
         56 93 4";
         assert_eq!(part_two(input), 46);
+    }
+
+    #[test]
+    fn can_map_one_range() {
+        let input = "\
+        seeds: 79 14 55 13
+
+        seed-to-soil map:
+        50 98 2
+        52 50 48";
+
+        // Seeds:
+        // - (79..93)
+        // - (55..68)
+
+        // Seed-to-soil
+        // - (98..100) --> (50..52)
+        // - (50..98)  --> (52..100)
+
+        // Smallest is 57. We get there by the seed 55.
+        assert_eq!(part_two(input), 57)
+    }
+
+    #[test]
+    fn can_map_default_when_no_intersects() {
+        let input = "\
+        seeds: 10 40 79 14 55 13
+
+        seed-to-soil map:
+        50 98 2
+        52 50 48";
+
+        // Seeds:
+        // - (10..49)
+        // - (79..99)
+        // - (55..68)
+
+        // Seed-to-soil
+        // - (98..100) --> (50..52)
+        // - (50..98)  --> (52..100)
+
+        // Smallest is 10. We get there by the seed 10.
+        assert_eq!(part_two(input), 10)
     }
 }
